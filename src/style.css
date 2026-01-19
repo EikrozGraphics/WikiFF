@@ -182,7 +182,7 @@ input[disabled] {
   border: 0;
 }
 
-/* --- NUEVOS ESTILOS PARA FAVORITOS --- */
+/* --- ESTILOS PARA FAVORITOS --- */
 .fav-btn {
   position: absolute;
   top: 5px;
@@ -206,6 +206,31 @@ input[disabled] {
   background: rgba(0, 0, 0, 0.7);
 }
 
+/* --- NUEVO: ESTILOS PARA BOTON COPIAR --- */
+.copy-btn {
+  position: absolute;
+  top: 5px;
+  right: 40px; /* Desplazado a la izquierda del fav-btn */
+  background: rgba(0, 0, 0, 0.4);
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 16px;
+  transition: transform 0.2s, background-color 0.2s;
+  color: white;
+}
+
+.copy-btn:hover {
+  transform: scale(1.1);
+  background: rgba(0, 0, 0, 0.7);
+}
+
 .figure-container {
-  position: relative; /* Importante para que el corazón se posicione dentro de la tarjeta */
+  position: relative; /* Importante para que los botones se posicionen dentro */
 }

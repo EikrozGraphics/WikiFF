@@ -612,9 +612,9 @@ Object.entries(links).forEach(([t, e]) => {
 
 /**
  * Filters items in trash mode based on a search term and logs the results.
- * Includes favorites functionality.
+ * Includes favorites functionality and copy to clipboard button.
  *
- * @param {number} currentPage - The current page number (future implementation for pagination).
+ * @param {number} currentPage - The current page number.
  * @param {string} searchTerm - The term used to filter items in trash mode.
  * @param {Array<string>} trashItems - The array of items in trash to filter.
  * @returns {Promise<void>} A promise that resolves after logging the filtered results.
@@ -644,7 +644,7 @@ async function displayFilteredTrashItems(currentPage, searchTerm, trashItems) {
     item.toString().toLowerCase().includes(normalizedTerm),
   );
 
-  // --- FILTRADO POR FAVORITOS (NUEVO) ---
+  // --- FILTRADO POR FAVORITOS ---
   if (window.showOnlyFavorites) {
       filteredTrash = filteredTrash.filter(item => {
           // Remover extensión .png para comparar con los favoritos guardados
@@ -668,19 +668,41 @@ async function displayFilteredTrashItems(currentPage, searchTerm, trashItems) {
   for (let i = startIdx; i < endIdx; i++) {
     const item = filteredTrash[i]; // item es el nombre del archivo (ej: "123.png")
 
-    // 1. Crear el contenedor <figure> (igual que en Main Mode)
+    // 1. Crear el contenedor <figure>
     const figure = document.createElement("figure");
-    // Agregamos 'figure-container' para el CSS del corazón
+    // Agregamos 'figure-container' para el CSS del corazón y botón copiar
     figure.className = "figure-container bg-center bg-no-repeat [background-size:120%] image p-3 bounce-click border border-[var(--border-color)]";
     
-    // 2. Crear el Botón de Corazón
+    // El ID en trash mode es el nombre del archivo. Le quitamos el ".png"
+    const cleanID = item.toString().replace(/\.png$/i, "");
+
+    // 2. Crear el Botón de Copiar (NUEVO)
+    const copyBtn = document.createElement("button");
+    copyBtn.className = "copy-btn";
+    copyBtn.innerHTML = "📋"; // Icono de portapapeles
+    copyBtn.title = "Copy ID";
+
+    copyBtn.onclick = (e) => {
+        e.stopPropagation(); // Evita abrir el modal
+        
+        // Copiar al portapapeles
+        navigator.clipboard.writeText(cleanID).then(() => {
+            // Feedback visual temporal
+            const originalIcon = copyBtn.innerHTML;
+            copyBtn.innerHTML = "✅";
+            setTimeout(() => {
+                copyBtn.innerHTML = originalIcon;
+            }, 1000);
+        }).catch(err => {
+            console.error('Error al copiar: ', err);
+        });
+    };
+
+    // 3. Crear el Botón de Corazón
     const heartBtn = document.createElement("button");
     heartBtn.className = "fav-btn";
     
-    // El ID en trash mode es el nombre del archivo. Le quitamos el ".png" para que coincida con la base de datos de favoritos
-    const cleanID = item.toString().replace(/\.png$/i, "");
-    
-    // Verificamos si es favorito (seguro contra fallos si 'favorites' no está definido aún)
+    // Verificamos si es favorito
     const isFav = (typeof favorites !== 'undefined') ? favorites.has(cleanID) : false;
     
     heartBtn.innerHTML = isFav ? '❤️' : '🤍';
@@ -691,7 +713,7 @@ async function displayFilteredTrashItems(currentPage, searchTerm, trashItems) {
         }
     };
     
-    // 3. Crear la Imagen
+    // 4. Crear la Imagen
     const image = document.createElement("img");
     image.loading = "lazy";
     image.id = "list_item_img";
@@ -700,8 +722,9 @@ async function displayFilteredTrashItems(currentPage, searchTerm, trashItems) {
     image.src = imgSrc;
     
     // Ensamblar
-    figure.appendChild(heartBtn);
-    figure.appendChild(image);
+    figure.appendChild(copyBtn); // Agregamos botón copiar
+    figure.appendChild(heartBtn); // Agregamos botón favoritos
+    figure.appendChild(image);    // Agregamos imagen
 
     // Evento Click en la figura completa
     figure.addEventListener("click", () =>
