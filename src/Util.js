@@ -242,6 +242,7 @@ function displayItemInfo(itemData, imageSource, sharedElement, isTrashMode) {
     iconName: document.getElementById("dialog-tittle-pp"),
     closeBtn: document.getElementById("hide_dialg_btn"),
     shareButton: document.getElementById("share-btn"),
+    favButton: document.getElementById("fav-modal-btn")
   };
 
   // Verify all required dialog elements exist
@@ -251,6 +252,33 @@ function displayItemInfo(itemData, imageSource, sharedElement, isTrashMode) {
       return;
     }
   }
+
+  // --- LOGICA FAVORITOS EN MODAL ---
+  let currentID = "";
+  if (isTrashMode) {
+      currentID = itemData.replace(".png", "");
+  } else {
+      currentID = itemData.itemID;
+  }
+  
+  // Clonar botón para limpiar eventos previos
+  const oldFavBtn = dialogTitleParagraphs.favButton;
+  const newFavBtn = oldFavBtn.cloneNode(true);
+  oldFavBtn.parentNode.replaceChild(newFavBtn, oldFavBtn);
+  dialogTitleParagraphs.favButton = newFavBtn;
+
+  // Estado inicial
+  const isFav = (typeof favorites !== 'undefined') ? favorites.has(String(currentID)) : false;
+  newFavBtn.innerHTML = isFav ? '❤️' : '🤍';
+  newFavBtn.style.fontSize = "16px";
+
+  // Evento click dentro del modal
+  newFavBtn.addEventListener("click", () => {
+      if(typeof toggleFavorite === 'function') {
+          toggleFavorite(String(currentID), newFavBtn);
+      }
+  });
+  // ---------------------------------
 
   // Set the image source for the item
   targetElement.src = imageSource || "";
@@ -278,7 +306,9 @@ function displayItemInfo(itemData, imageSource, sharedElement, isTrashMode) {
       const closebtnBgColor = getContrastColor(dominantColorobj, 3, 3);
       const closebtnBrColor = getContrastColor(dominantColorobj, 4, 4);
       const closebtnTextColor = getContrastColor(dominantColorobj, 0, 0);
-      ["hide_dialg_btn", "share-btn", "google-lens-btn"].forEach((id) => {
+      
+      // Incluir el botón de favoritos en la lógica de color
+      ["hide_dialg_btn", "share-btn", "google-lens-btn", "fav-modal-btn"].forEach((id) => {
         const btn = document.getElementById(id);
         if (btn) {
           btn.style.background = closebtnBgColor;
@@ -613,12 +643,30 @@ async function displayFilteredTrashItems(currentPage, searchTerm, trashItems) {
   const startIdx = (currentPage - 1) * 200;
   const endIdx = Math.min(startIdx + 200, filteredTrash.length);
   const webpGallery = document.getElementById("webpGallery");
-  const fragment = document.createDocumentFragment(); // Use DocumentFragment for batch DOM updates
-  webpGallery.innerHTML = ""; // Clear existing content
+  const fragment = document.createDocumentFragment(); 
+  webpGallery.innerHTML = ""; 
+  
   for (let i = startIdx; i < endIdx; i++) {
     const item = filteredTrash[i];
+    
+    // --- NUEVO: ESTRUCTURA CON CORAZÓN EN TRASH MODE ---
+    const figure = document.createElement("figure");
+    figure.className = "figure-container bg-center bg-no-repeat [background-size:120%] image p-3 bounce-click border border-[var(--border-color)]";
+    
+    // Botón Favorito
+    const heartBtn = document.createElement("button");
+    heartBtn.className = "fav-btn";
+    const cleanID = item.toString().replace(/\.png$/i, "");
+    const isFav = (typeof favorites !== 'undefined') ? favorites.has(cleanID) : false;
+    heartBtn.innerHTML = isFav ? '❤️' : '🤍';
+    heartBtn.onclick = (e) => {
+        e.stopPropagation();
+        if(typeof toggleFavorite === 'function') {
+            toggleFavorite(cleanID, heartBtn);
+        }
+    };
+    
     const image = document.createElement("img");
-    image.className = "image p-3 bounce-click ";
     image.loading = "lazy";
     image.id = "list_item_img";
     image.setAttribute("crossorigin", "anonymous");
@@ -626,14 +674,20 @@ async function displayFilteredTrashItems(currentPage, searchTerm, trashItems) {
       `https://raw.githubusercontent.com/0xme/ff-resources/refs/heads/main/pngs/300x300/` +
       item;
     image.src = imgSrc;
-    image.addEventListener("click", () =>
+    
+    figure.appendChild(heartBtn);
+    figure.appendChild(image);
+    
+    figure.addEventListener("click", () =>
       displayItemInfo(item, imgSrc, image, (isTrashMode = true)),
     );
-    fragment.appendChild(image);
+    fragment.appendChild(figure);
+    // ---------------------------------------------------
   }
-  webpGallery.appendChild(fragment); // Add all images at once
+  
+  webpGallery.appendChild(fragment); 
   totalPages = Math.ceil(filteredTrash.length / 200);
-  renderPagination(searchTerm, trashItems, (isTrashMode = true), totalPages); // Render pagination
+  renderPagination(searchTerm, trashItems, (isTrashMode = true), totalPages); 
 }
 
 // Class utility functions
@@ -1030,7 +1084,7 @@ async function goToPage(
  * @example
  * // Example usage
  * generatePaginationNumbers(10).then(paginationNumbers => {
- *   console.log(paginationNumbers); // [1, 2, 3, ..., 10]
+ * console.log(paginationNumbers); // [1, 2, 3, ..., 10]
  * });
  */
 async function generatePaginationNumbers(totalPages) {
