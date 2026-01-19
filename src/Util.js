@@ -612,6 +612,7 @@ Object.entries(links).forEach(([t, e]) => {
 
 /**
  * Filters items in trash mode based on a search term and logs the results.
+ * Includes favorites functionality.
  *
  * @param {number} currentPage - The current page number (future implementation for pagination).
  * @param {string} searchTerm - The term used to filter items in trash mode.
@@ -634,60 +635,85 @@ async function displayFilteredTrashItems(currentPage, searchTerm, trashItems) {
       "The 'trashItems' parameter must be an array of strings.",
     );
   }
+
   // Normalize the search term for case-insensitive matching
   const normalizedTerm = searchTerm.trim().toLowerCase();
+  
   // Filter the trash items based on the search term
-  const filteredTrash = trashItems.filter((item) =>
+  let filteredTrash = trashItems.filter((item) =>
     item.toString().toLowerCase().includes(normalizedTerm),
   );
+
+  // --- FILTRADO POR FAVORITOS (NUEVO) ---
+  if (window.showOnlyFavorites) {
+      filteredTrash = filteredTrash.filter(item => {
+          // Remover extensión .png para comparar con los favoritos guardados
+          const cleanID = item.toString().replace(/\.png$/i, "");
+          return typeof favorites !== 'undefined' && favorites.has(cleanID);
+      });
+  }
+  // -------------------------------------
+
   const startIdx = (currentPage - 1) * 200;
   const endIdx = Math.min(startIdx + 200, filteredTrash.length);
   const webpGallery = document.getElementById("webpGallery");
   const fragment = document.createDocumentFragment(); 
   webpGallery.innerHTML = ""; 
-  
+
+  // Mensaje si no hay favoritos
+  if(window.showOnlyFavorites && filteredTrash.length === 0) {
+      webpGallery.innerHTML = "<p class='ibm-plex-mono-regular' style='color:var(--secondary); width:100%; text-align:center; padding: 20px;'>No favorites added yet!</p>";
+  }
+
   for (let i = startIdx; i < endIdx; i++) {
-    const item = filteredTrash[i];
-    
-    // --- NUEVO: ESTRUCTURA CON CORAZÓN EN TRASH MODE ---
+    const item = filteredTrash[i]; // item es el nombre del archivo (ej: "123.png")
+
+    // 1. Crear el contenedor <figure> (igual que en Main Mode)
     const figure = document.createElement("figure");
+    // Agregamos 'figure-container' para el CSS del corazón
     figure.className = "figure-container bg-center bg-no-repeat [background-size:120%] image p-3 bounce-click border border-[var(--border-color)]";
     
-    // Botón Favorito
+    // 2. Crear el Botón de Corazón
     const heartBtn = document.createElement("button");
     heartBtn.className = "fav-btn";
+    
+    // El ID en trash mode es el nombre del archivo. Le quitamos el ".png" para que coincida con la base de datos de favoritos
     const cleanID = item.toString().replace(/\.png$/i, "");
+    
+    // Verificamos si es favorito (seguro contra fallos si 'favorites' no está definido aún)
     const isFav = (typeof favorites !== 'undefined') ? favorites.has(cleanID) : false;
+    
     heartBtn.innerHTML = isFav ? '❤️' : '🤍';
     heartBtn.onclick = (e) => {
-        e.stopPropagation();
+        e.stopPropagation(); // Evita abrir el modal
         if(typeof toggleFavorite === 'function') {
             toggleFavorite(cleanID, heartBtn);
         }
     };
     
+    // 3. Crear la Imagen
     const image = document.createElement("img");
     image.loading = "lazy";
     image.id = "list_item_img";
     image.setAttribute("crossorigin", "anonymous");
-    let imgSrc =
-      `https://raw.githubusercontent.com/0xme/ff-resources/refs/heads/main/pngs/300x300/` +
-      item;
+    let imgSrc = `https://raw.githubusercontent.com/0xme/ff-resources/refs/heads/main/pngs/300x300/` + item;
     image.src = imgSrc;
     
+    // Ensamblar
     figure.appendChild(heartBtn);
     figure.appendChild(image);
-    
+
+    // Evento Click en la figura completa
     figure.addEventListener("click", () =>
       displayItemInfo(item, imgSrc, image, (isTrashMode = true)),
     );
+
     fragment.appendChild(figure);
-    // ---------------------------------------------------
   }
-  
+
   webpGallery.appendChild(fragment); 
   totalPages = Math.ceil(filteredTrash.length / 200);
-  renderPagination(searchTerm, trashItems, (isTrashMode = true), totalPages); 
+  renderPagination(searchTerm, filteredTrash, (isTrashMode = true), totalPages); // Usamos filteredTrash aquí
 }
 
 // Class utility functions

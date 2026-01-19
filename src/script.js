@@ -1,6 +1,6 @@
-// VARIABLES GLOBALES PARA FAVORITOS
+// VARIABLES GLOBALES PARA FAVORITOS (Usamos window para que sean accesibles desde Util.js)
 let favorites = new Set(JSON.parse(localStorage.getItem('ff_favorites')) || []);
-let showOnlyFavorites = false;
+window.showOnlyFavorites = false; 
 
 // Fetch data from multiple JSON files concurrently using Promise.all
 Promise.all([
@@ -36,11 +36,18 @@ function toggleFavorite(id, btnElement) {
     
     localStorage.setItem('ff_favorites', JSON.stringify([...favorites]));
     
-    // Si estamos en modo "Solo favoritos", refrescar la página actual para remover el item
-    if (showOnlyFavorites) {
-         // Usamos el valor actual del input de búsqueda
+    // Si el filtro "Solo Favoritos" está activo, recargamos la vista actual para quitar el item
+    if (window.showOnlyFavorites) {
          const currentSearch = document.getElementById("search-input").value;
-         displayPage(1, currentSearch, current_data);
+         
+         // Detectar qué modo está activo para recargar la función correcta
+         if (typeof itemID !== 'undefined' && itemID.state.displayMode === 1) {
+             // Estamos en Trash Mode
+             displayFilteredTrashItems(currentPage, currentSearch, pngs_json_list);
+         } else {
+             // Estamos en Modo Normal
+             displayPage(1, currentSearch, current_data);
+         }
     }
 }
 
@@ -49,7 +56,7 @@ async function displayPage(pageNumber, searchTerm, webps) {
   
   // --- FILTRADO POR FAVORITOS ---
   let displaySource = webps;
-  if (showOnlyFavorites) {
+  if (window.showOnlyFavorites) {
       displaySource = webps.filter(item => favorites.has(String(item.itemID)));
   }
   // ------------------------------
@@ -72,7 +79,7 @@ async function displayPage(pageNumber, searchTerm, webps) {
   webpGallery.innerHTML = ""; 
 
   // Mensaje si no hay favoritos
-  if(showOnlyFavorites && filteredItems.length === 0) {
+  if(window.showOnlyFavorites && filteredItems.length === 0) {
       webpGallery.innerHTML = "<p class='ibm-plex-mono-regular' style='color:var(--secondary); width:100%; text-align:center; padding: 20px;'>No favorites added yet!</p>";
   }
 
@@ -90,7 +97,6 @@ async function displayPage(pageNumber, searchTerm, webps) {
     }
     
     const figure = document.createElement("figure");
-    // Agregamos 'figure-container' para el CSS
     figure.className =
       "figure-container bg-center bg-no-repeat [background-size:120%] image p-3 bounce-click border border-[var(--border-color)]";
     figure.setAttribute(
@@ -105,7 +111,7 @@ async function displayPage(pageNumber, searchTerm, webps) {
     heartBtn.className = "fav-btn";
     heartBtn.innerHTML = favorites.has(String(item.itemID)) ? '❤️' : '🤍';
     heartBtn.onclick = (e) => {
-        e.stopPropagation(); // Evita abrir el modal al dar like
+        e.stopPropagation(); // Evita abrir el modal
         toggleFavorite(item.itemID, heartBtn);
     };
     figure.appendChild(heartBtn);
@@ -129,7 +135,6 @@ async function displayPage(pageNumber, searchTerm, webps) {
     filteredItems.length / itemID.config.perPageLimitItem,
   );
   
-  // Importante: pasar filteredItems a la paginación para que coincida con lo que se ve
   renderPagination(searchTerm, filteredItems, (isTrashMode = false), totalPages); 
   updateUrl(); 
 }
@@ -145,14 +150,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const clearButton = document.getElementById("clear_btn");
   const searchContainer = document.getElementById("input_search_bg");
 
-  // --- LOGICA BOTÓN FAVORITOS ---
+  // --- LOGICA BOTÓN FAVORITOS (CORREGIDA) ---
   const favBtn = document.getElementById("FavItem_btn");
   if(favBtn) {
       favBtn.addEventListener("click", () => {
-          showOnlyFavorites = !showOnlyFavorites;
+          window.showOnlyFavorites = !window.showOnlyFavorites;
           
           // Estilo visual del botón activo
-          if(showOnlyFavorites) {
+          if(window.showOnlyFavorites) {
              favBtn.style.backgroundColor = "var(--sidebar-highlight)"; 
              favBtn.style.color = "white";
           } else {
@@ -160,8 +165,16 @@ document.addEventListener("DOMContentLoaded", () => {
              favBtn.style.color = ""; 
           }
           
-          // Recargar visualización
-          displayPage(1, searchInput.value, current_data);
+          // RECARGAR VISUALIZACIÓN DEPENDIENDO DEL MODO (TRASH O NORMAL)
+          const currentSearch = searchInput.value;
+          
+          if (typeof itemID !== 'undefined' && itemID.state.displayMode === 1) {
+             // Estamos en Trash Mode: Usar la función de Trash
+             displayFilteredTrashItems(1, currentSearch, pngs_json_list);
+          } else {
+             // Estamos en Modo Normal: Usar la función Normal
+             displayPage(1, currentSearch, current_data);
+          }
       });
   }
   // ------------------------------
