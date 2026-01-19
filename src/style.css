@@ -1,11 +1,6 @@
 @keyframes themeChange {
-  0% {
-    opacity: 0;
-  }
-  
-  100% {
-    opacity: 1;
-  }
+  0% { opacity: 0; }
+  100% { opacity: 1; }
 }
 
 body {
@@ -70,30 +65,14 @@ body {
   box-shadow: 0 1.5px 24px rgba(0, 0, 0, 0.18), inset 0 1.5px 8px rgba(255, 255, 255, 0.10);
 }
 
-
 @keyframes fadeOut {
-  from {
-    opacity: 1;
-    visibility: visible;
-  }
-  
-  to {
-    opacity: 0;
-    visibility: hidden;
-  }
+  from { opacity: 1; visibility: visible; }
+  to { opacity: 0; visibility: hidden; }
 }
 
-
 @keyframes fadeIn {
-  to {
-    opacity: 1;
-    visibility: visible;
-  }
-  
-  from {
-    opacity: 0;
-    visibility: hidden;
-  }
+  to { opacity: 1; visibility: visible; }
+  from { opacity: 0; visibility: hidden; }
 }
 
 .copied-animation {
@@ -101,54 +80,19 @@ body {
   animation: fadeInOut 1s ease-in-out;
 }
 
-
 @keyframes fadeInOut {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  
-  50% {
-    opacity: 0;
-  }
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
 
-#share-btn {
-  padding: 3%;
-  border-radius: var(--border-radius);
-}
-
-.disabled {
-  pointer-events: none;
-  opacity: 0.5;
-}
-
-.enabled {
-  pointer-events: visible;
-  opacity: 1;
-}
-
-#svg-icon {
-  width: 20px;
-  fill: #CFD8DC;
-}
-
-.collapsed {
-  visibility: visible;
-}
-
-.expanded {
-  visibility: visible;
-}
-
-
-.collapsed2 {
-  visibility: visible;
-}
-
-.expanded2 {
-  visibility: hidden;
-}
+#share-btn { padding: 3%; border-radius: var(--border-radius); }
+.disabled { pointer-events: none; opacity: 0.5; }
+.enabled { pointer-events: visible; opacity: 1; }
+#svg-icon { width: 20px; fill: #CFD8DC; }
+.collapsed { visibility: visible; }
+.expanded { visibility: visible; }
+.collapsed2 { visibility: visible; }
+.expanded2 { visibility: hidden; }
 
 .bounce-click {
   -webkit-transition: -webkit-transform 0.1s ease-in-out;
@@ -177,69 +121,23 @@ input[disabled] {
   cursor: not-allowed;
 }
 
-#dialog-tittle,
-#dialog-tittle-pp,
-#dialog-tittle-p {
-  visibility: hidden;
-}
+#dialog-tittle, #dialog-tittle-pp, #dialog-tittle-p { visibility: hidden; }
 
-.slide-top {
-  animation: slide-top 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
-}
-
-
+.slide-top { animation: slide-top 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both; }
 @keyframes slide-top {
-  0% {
-    -webkit-transform: translateY(50px);
-    transform: translateY(50px);
-    opacity: 0;
-  }
-  
-  100% {
-    -webkit-transform: translateY(0);
-    transform: translateY(0);
-    opacity: 1;
-    visibility: visible;
-  }
+  0% { -webkit-transform: translateY(50px); transform: translateY(50px); opacity: 0; }
+  100% { -webkit-transform: translateY(0); transform: translateY(0); opacity: 1; visibility: visible; }
 }
 
-
-.slide-bottom {
-  animation: slide-bottom 0.2s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
-}
-
+.slide-bottom { animation: slide-bottom 0.2s cubic-bezier(0.250, 0.460, 0.450, 0.940) both; }
 @keyframes slide-bottom {
-  0% {
-    -webkit-transform: translateY(0);
-    transform: translateY(0);
-    visibility: visible;
-    opacity: 1;
-  }
-  
-  100% {
-    -webkit-transform: translateY(50px);
-    transform: translateY(50px);
-    opacity: 0;
-    visibility: hidden;
-  }
+  0% { -webkit-transform: translateY(0); transform: translateY(0); visibility: visible; opacity: 1; }
+  100% { -webkit-transform: translateY(50px); transform: translateY(50px); opacity: 0; visibility: hidden; }
 }
 
-#settings-bg {
-  visibility: hidden;
-  background: black;
-}
-
-.settings-scrollable-content {
-  max-height: calc(100vh - 70px);
-  overflow-y: auto;
-  padding-right: 8px;
-  scroll-behavior: smooth;
-}
-
-#google-lens-btn {
-  padding: 3%;
-  border-radius: var(--border-radius);
-}
+#settings-bg { visibility: hidden; background: black; }
+.settings-scrollable-content { max-height: calc(100vh - 70px); overflow-y: auto; padding-right: 8px; scroll-behavior: smooth; }
+#google-lens-btn { padding: 3%; border-radius: var(--border-radius); }
 
 #container-dialog {
   border-radius: 18px;
@@ -282,4 +180,32 @@ input[disabled] {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+/* --- NUEVOS ESTILOS PARA FAVORITOS --- */
+.fav-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: rgba(0, 0, 0, 0.4);
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 16px;
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.fav-btn:hover {
+  transform: scale(1.1);
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.figure-container {
+  position: relative; /* Importante para que el corazón se posicione dentro de la tarjeta */
 }
